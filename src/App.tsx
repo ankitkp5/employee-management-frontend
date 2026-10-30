@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { departmentApi, employeeApi } from "./api";
+import { authApi, authStorage, departmentApi, employeeApi } from "./api";
 import type { Department, Employee, EmployeeForm } from "./types";
 
 const emptyForm: EmployeeForm = {
@@ -25,6 +25,14 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(
+  () => Boolean(authStorage.getToken())
+);
+
+const [loginEmail, setLoginEmail] = useState("");
+const [loginPassword, setLoginPassword] = useState("");
+const [loginLoading, setLoginLoading] = useState(false);
+const [loginError, setLoginError] = useState("");
 
   async function loadData() {
     setLoading(true);
@@ -43,7 +51,49 @@ export default function App() {
     }
   }
 
-  useEffect(() => { void loadData(); }, []);
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  setLoginError("");
+  setLoginLoading(true);
+
+  try {
+    await authApi.login({
+      email: loginEmail.trim(),
+      password: loginPassword
+    });
+
+    setLoginPassword("");
+    setIsAuthenticated(true);
+  } catch (e) {
+    authStorage.clearToken();
+
+    setLoginError(
+      e instanceof Error
+        ? e.message
+        : "Login failed. Please check your email and password."
+    );
+  } finally {
+    setLoginLoading(false);
+  }
+}
+
+function handleLogout() {
+  authApi.logout();
+
+  setIsAuthenticated(false);
+  setEmployees([]);
+  setDepartments([]);
+  setError("");
+  setNotice("");
+  cancelEdit();
+}
+
+useEffect(() => {
+  if (isAuthenticated) {
+    void loadData();
+  }
+}, [isAuthenticated]);
 
   const filteredEmployees = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -123,8 +173,65 @@ export default function App() {
 
   const activeCount = employees.filter((employee) => employee.isActive).length;
 
+if (!isAuthenticated) {
   return (
-    <div className="app-shell">
+    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light p-3">
+      <div className="card border-0 shadow p-4" style={{ width: "100%", maxWidth: "420px" }}>
+        <div className="text-center mb-4">
+          <div className="brand-mark mx-auto mb-3">EM</div>
+          <h1 className="h3 fw-bold">
+            People<span style={{ color: "#8b5cf6" }}>Desk</span>
+          </h1>
+          <p className="text-secondary">Sign in to your Employee Management System</p>
+        </div>
+
+        {loginError && (
+          <div className="alert alert-danger" role="alert">
+            {loginError}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin}>
+          <div className="mb-3">
+            <label htmlFor="loginEmail" className="form-label">Email address</label>
+            <input
+              id="loginEmail"
+              type="email"
+              className="form-control"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              autoComplete="username"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="loginPassword" className="form-label">Password</label>
+            <input
+              id="loginPassword"
+              type="password"
+              className="form-control"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary w-100"
+            disabled={loginLoading}
+          >
+            {loginLoading ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+return (    <div className="app-shell">
       <aside className="sidebar">
         <div className="brand-mark">EM</div>
         <div className="brand-name">People<span>Desk</span></div>
@@ -141,13 +248,29 @@ export default function App() {
       </aside>
 
       <main className="main-content">
-        <header className="topbar">
-          <div>
-            <div className="eyebrow">WORKSPACE / PEOPLE</div>
-            <h1>Employee Dashboard</h1>
-          </div>
-          <button className="btn btn-light refresh-btn" onClick={() => void loadData()} disabled={loading}>↻ Refresh data</button>
-        </header>
+      <header className="topbar">
+  <div>
+    <div className="eyebrow">WORKSPACE / PEOPLE</div>
+    <h1>Employee Dashboard</h1>
+  </div>
+
+  <div className="d-flex gap-2">
+    <button
+      className="btn btn-light refresh-btn"
+      onClick={() => void loadData()}
+      disabled={loading}
+    >
+      ↻ Refresh data
+    </button>
+
+    <button
+      className="btn btn-outline-danger"
+      onClick={handleLogout}
+    >
+      Logout
+    </button>
+  </div>
+</header>
 
         {error && <div className="alert alert-danger" role="alert"><strong>Something went wrong:</strong> {error}<div className="small mt-2">Check that the ASP.NET API is running, the API URL is correct, and CORS allows http://localhost:5173.</div></div>}
         {notice && <div className="alert alert-success" role="status">{notice}</div>}
