@@ -647,14 +647,6 @@ export default function App() {
 
         <div className="topbar-actions">
           {action}
-          <button
-            type="button"
-            className="btn refresh-btn"
-            onClick={() => void loadData()}
-            disabled={loading}
-          >
-            {loading ? "Refreshing..." : "↻ Refresh"}
-          </button>
         </div>
       </div>
     );
