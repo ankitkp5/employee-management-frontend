@@ -11,10 +11,8 @@ import type {
 
 // ASP.NET Core Web API base URL.
 // Update the port if your backend uses a different HTTPS port.
-const API_BASE_URL = (
-  // import.meta.env.VITE_API_BASE_URL || "https://localhost:54778/api"
-  import.meta.env.VITE_API_BASE_URL || "https://emphr.somee.com/api"
-).replace(/\/+$/, "");
+// Fixed to the live backend so a stale VITE_API_BASE_URL (e.g. on Vercel) can't override it.
+const API_BASE_URL = "https://emphr.somee.com/api";
 
 export class ApiError extends Error {
   constructor(
