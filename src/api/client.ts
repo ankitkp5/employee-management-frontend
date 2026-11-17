@@ -1,5 +1,9 @@
 import { API_BASE_URL } from "../config/env";
 
+// Fired when the server rejects the saved token (HTTP 401) so the app can
+// sign the user out instead of showing empty screens.
+export const UNAUTHORIZED_EVENT = "auth:unauthorized";
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -57,6 +61,11 @@ export async function request<T>(
     const message = await response.text();
 
     if (response.status === 401) {
+      if (includeToken) {
+        authStorage.clearToken();
+        window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+      }
+
       throw new Error(
         "401 Unauthorized: Your session may have expired. Please log in again."
       );

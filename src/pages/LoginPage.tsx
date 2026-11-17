@@ -3,12 +3,16 @@ import { authApi, authStorage } from "../api";
 
 interface LoginPageProps {
   onLoggedIn: () => void;
+  initialError?: string;
 }
 
-export default function LoginPage({ onLoggedIn }: LoginPageProps) {
+export default function LoginPage({
+  onLoggedIn,
+  initialError = "",
+}: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
+  const [loginError, setLoginError] = useState(initialError);
   const [loginLoading, setLoginLoading] = useState(false);
 
   async function login(event: FormEvent<HTMLFormElement>) {

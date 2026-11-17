@@ -1,4 +1,4 @@
-export { ApiError, authStorage } from "./client";
+export { ApiError, authStorage, UNAUTHORIZED_EVENT } from "./client";
 export { authApi } from "./auth";
 export type { LoginRequest, LoginResponse } from "./auth";
 export { employeeApi } from "./employees";

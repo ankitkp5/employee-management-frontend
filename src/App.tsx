@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { authApi, authStorage } from "./api";
+import { useEffect, useState } from "react";
+import { authApi, authStorage, UNAUTHORIZED_EVENT } from "./api";
 import Messages from "./components/layout/Messages";
 import Sidebar from "./components/layout/Sidebar";
 import { useAppData } from "./hooks/useAppData";
@@ -18,8 +18,27 @@ export default function App() {
     Boolean(authStorage.getToken())
   );
 
+  const [sessionExpired, setSessionExpired] = useState(false);
+
   const feedback = useFeedback();
   const data = useAppData(authenticated, feedback.setError);
+  const { reset } = data;
+  const { clear } = feedback;
+
+  // Token rejected by the server (expired / from another backend): sign out.
+  useEffect(() => {
+    function onUnauthorized() {
+      setSessionExpired(true);
+      setAuthenticated(false);
+      reset();
+      clear();
+      setPage("Dashboard");
+    }
+
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () =>
+      window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, [reset, clear]);
 
   function navigate(next: Page) {
     setPage(next);
@@ -35,7 +54,17 @@ export default function App() {
   }
 
   if (!authenticated) {
-    return <LoginPage onLoggedIn={() => setAuthenticated(true)} />;
+    return (
+      <LoginPage
+        initialError={
+          sessionExpired ? "Your session expired. Please sign in again." : ""
+        }
+        onLoggedIn={() => {
+          setSessionExpired(false);
+          setAuthenticated(true);
+        }}
+      />
+    );
   }
 
   return (
