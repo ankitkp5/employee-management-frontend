@@ -894,7 +894,6 @@ export default function App() {
               ["Employees", "♙"],
               ["Departments", "▤"],
               ["Attendance", "◷"],
-              ["Reports", "▧"],
             ] as [Page, string][]
           ).map(([item, icon]) => (
             <button
