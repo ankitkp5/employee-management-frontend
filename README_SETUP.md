@@ -52,3 +52,21 @@ If HTTPS shows a certificate warning or fetch fails, open the API's HTTPS addres
 - Visible API error messages
 
 Authentication, attendance, salary records, PDF/Excel export, and reports are not implemented in this first frontend starter.
+
+## Project structure
+```
+src/
+  main.tsx            App entry point
+  App.tsx             Shell: login gate, sidebar, page switching
+  api/                API layer (client + one file per resource)
+  components/
+    layout/           Sidebar, PageHeading, Messages
+    charts/           Dashboard charts
+  pages/              Login, Dashboard, Employees, Departments, Attendance, Reports
+  hooks/              useAppData (server data), useFeedback (error/notice)
+  constants/          Status lists, chart colours, sidebar items
+  config/             API base URL
+  types/              Shared TypeScript types
+  utils/              Formatting helpers and blank form values
+  styles.css          Global styles
+```

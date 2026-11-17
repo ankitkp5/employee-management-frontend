@@ -103,3 +103,15 @@ export interface HiringTrend {
   monthName: string;
   newHires: number;
 }
+
+export type AttendanceRow = Attendance & {
+  employeeCode?: string;
+  employeeName?: string;
+};
+
+export type Page =
+  | "Dashboard"
+  | "Employees"
+  | "Departments"
+  | "Attendance"
+  | "Reports";
